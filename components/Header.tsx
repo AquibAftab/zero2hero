@@ -1,6 +1,6 @@
 // @ts-nocheck
 'use client'
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from 'next/navigation'
 import { Button } from "@/components/ui/button"
@@ -18,12 +18,12 @@ import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import { createUser, getUnreadNotifications, markNotificationAsRead, getUserByEmail, getUserBalance } from "@/utils/db/actions"
 
-const clientId = process.env.WEB3_AUTH_CLIENT_ID ;
+const clientId='BGv1r01bQJcECHnhsGRVoEyUGC5YUvwoVOSx9pISgG-Y42XSLuOzhRKuKua6ab5TOiJeA8hONKtYhCU3fBqAh2o';
 
 const chainConfig = {
   chainNamespace: CHAIN_NAMESPACES.EIP155,
   chainId: "0xaa36a7",
-  rpcTarget: "https://rpc.ankr.com/eth_sepolia",
+  rpcTarget: "https://ethereum-sepolia-rpc.publicnode.com", // <--- UPDATED
   displayName: "Ethereum Sepolia Testnet",
   blockExplorerUrl: "https://sepolia.etherscan.io",
   ticker: "ETH",
@@ -31,13 +31,15 @@ const chainConfig = {
   logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
 };
 
+
 const privateKeyProvider = new EthereumPrivateKeyProvider({
   config: { chainConfig },
 });
 
+
 const web3auth = new Web3Auth({
   clientId,
-  web3AuthNetwork: WEB3AUTH_NETWORK.TESTNET, // Changed from SAPPHIRE_MAINNET to TESTNET
+  web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET, 
   privateKeyProvider,
 });
 
@@ -45,6 +47,7 @@ interface HeaderProps {
   onMenuClick: () => void;
   totalEarnings: number;
 }
+
 
 export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
   const [provider, setProvider] = useState<IProvider | null>(null);
@@ -55,6 +58,7 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const isMobile = useMediaQuery("(max-width: 768px)")
   const [balance, setBalance] = useState(0)
+  
 
   console.log('user info', userInfo);
   
@@ -63,18 +67,24 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
       try {
         await web3auth.initModal();
         setProvider(web3auth.provider);
-
+  
         if (web3auth.connected) {
           setLoggedIn(true);
           const user = await web3auth.getUserInfo();
           setUserInfo(user);
+  
           if (user.email) {
             localStorage.setItem('userEmail', user.email);
+  
             try {
-              await createUser(user.email, user.name || 'Anonymous User');
+              // 👇 Check if user already exists before trying to create
+              const existingUser = await getUserByEmail(user.email);
+              if (!existingUser) {
+                await createUser(user.email, user.name || 'Anonymous User');
+              }
             } catch (error) {
-              console.error("Error creating user:", error);
-              // Handle the error appropriately, maybe show a message to the user
+              console.error("Error checking/creating user:", error);
+              // Optionally show a toast or notification
             }
           }
         }
@@ -84,10 +94,11 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
         setLoading(false);
       }
     };
-
+  
     init();
   }, []);
 
+  
   useEffect(() => {
     const fetchNotifications = async () => {
       if (userInfo && userInfo.email) {
@@ -141,22 +152,29 @@ export default function Header({ onMenuClick, totalEarnings }: HeaderProps) {
       const web3authProvider = await web3auth.connect();
       setProvider(web3authProvider);
       setLoggedIn(true);
+  
       const user = await web3auth.getUserInfo();
       setUserInfo(user);
+  
       if (user.email) {
         localStorage.setItem('userEmail', user.email);
+  
         try {
-          await createUser(user.email, user.name || 'Anonymous User');
+          // 👇 Check if the user already exists
+          const existingUser = await getUserByEmail(user.email);
+          if (!existingUser) {
+            await createUser(user.email, user.name || 'Anonymous User');
+          }
         } catch (error) {
-          console.error("Error creating user:", error);
-          // Handle the error appropriately, maybe show a message to the user
+          console.error("Error checking/creating user:", error);
+          // Optionally show a toast or alert here
         }
       }
     } catch (error) {
       console.error("Error during login:", error);
     }
   };
-
+  
   const logout = async () => {
     if (!web3auth) {
       console.log("web3auth not initialized yet");

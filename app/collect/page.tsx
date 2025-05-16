@@ -8,7 +8,7 @@ import { getWasteCollectionTasks, updateTaskStatus, saveReward, saveCollectedWas
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
 // Make sure to set your Gemini API key in your environment variables
-const geminiApiKey = 'AIzaSyBKmyWnKg87gB0QlEUW_axX9NA6GOfVqPo'
+const geminiApiKey = ''
 
 type CollectionTask = {
   id: number

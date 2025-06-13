@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react'
 import {  MapPin, Upload, CheckCircle, Loader } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { StandaloneSearchBox,  useJsApiLoader } from '@react-google-maps/api'
+//import { StandaloneSearchBox,  useJsApiLoader } from '@react-google-maps/api'
 import { Libraries } from '@react-google-maps/api';
 import { createUser, getUserByEmail, createReport, getRecentReports } from '@/utils/db/actions';
 import { useRouter } from 'next/navigation';
@@ -44,11 +44,7 @@ export default function ReportPage() {
 
   const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
 
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: googleMapsApiKey!,
-    libraries: libraries
-  });
+
 
   const onLoad = useCallback((ref: google.maps.places.SearchBox) => {
     setSearchBox(ref);
@@ -293,11 +289,7 @@ Respond ONLY in JSON format like this (no markdown, no explanation):
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div>
             <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-            {isLoaded ? (
-              <StandaloneSearchBox
-                onLoad={onLoad}
-                onPlacesChanged={onPlacesChanged}
-              >
+            
                 <input
                   type="text"
                   id="location"
@@ -308,19 +300,8 @@ Respond ONLY in JSON format like this (no markdown, no explanation):
                   className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
                   placeholder="Enter waste location"
                 />
-              </StandaloneSearchBox>
-            ) : (
-              <input
-                type="text"
-                id="location"
-                name="location"
-                value={newReport.location}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300"
-                placeholder="Enter waste location"
-              />
-            )}
+             
+          
           </div>
           <div>
             <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">Waste Type</label>
